@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Apna Travel | Luxury Travel & Tools</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+ <style>
+    .hero-bg {
+      background-image: url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=2000&q=80');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .search-box-glass {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .card-hover { transition: all 0.4s ease; }
+    .card-hover:hover {
+      transform: translateY(-12px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .destination-hero {
+      background-size: cover;
+      background-position: center;
+      min-height: 60vh;
+    }
+
+    .toolkit-tab.active {
+      background-color: #0d9488;
+      color: white;
+      border-color: #0d9488;
+    }
+
+    /* CALENDAR SELECTION STYLES */
+    .calendar-day {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .calendar-day:hover {
+      background-color: #f0fdfa;
+      color: #0d9488;
+    }
+    .calendar-day.selected {
+      background-color: #0d9488 !important;
+      color: white !important;
+      font-weight: bold;
+      transform: scale(1.1);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    #bookingModal { backdrop-filter: blur(8px); }
+
+    
+    .safety-card {
+      background: linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%);
+      border: 1px solid #333;
+      border-radius: 20px;
+      color: white;
+      padding: 2rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
+    }
+
+    .safety-score {
+      font-size: 3rem;
+      font-weight: bold;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      transition: all 0.3s ease;
+    }
+
+    .safety-score.green { color: #10b981; }
+    .safety-score.yellow { color: #f59e0b; }
+    .safety-score.red { color: #ef4444; }
+
+    .emergency-btn {
+      background: linear-gradient(145deg, #ef4444, #dc2626);
+      border: none;
+      border-radius: 16px;
+      padding: 1.5rem 2rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: white;
+      box-shadow: 0 10px 25px rgba(239,68,68,0.4);
+      transition: all 0.3s ease;
+    }
+
+    .emergency-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 35px rgba(239,68,68,0.6);
+    }
+
+   .tool-card {
+    height: 500px; 
+    min-height: 450px; 
+    flex: 1;
+    min-width: 380px;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.toolkit-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+}
+
+.toolkit-card.active {
+  border: 3px solid #14b8a6;
+  box-shadow: 0 25px 50px rgba(20,184,166,0.3);
+}
+
+    .map-container {
+      height: 500px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      background: #1a1a1a;
+    }
+
+    .tool-content {
+      flex: 1;
+      height: 280px;
+      overflow-y: auto;
+      padding: 20px;
+      margin-top: 10px;
+    }
+
+    .tool-header {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #14b8a6, #0d9488);
+      color: white;
+      font-weight: bold;
+      font-size: 1.2rem;
+      border-radius: 12px 12px 0 0;
+      margin: -20px -20px 0 -20px;
+    }
+
+    /* DESTINATION PAGE ENHANCEMENTS */
+    .dest-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .dest-gallery img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 1rem;
+      transition: transform 0.3s ease;
+    }
+    .dest-gallery img:hover {
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body class="bg-gray-50 font-sans">
+
+  
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 bg-teal-600 rounded-full flex items-center justify-center text-white">
+          <i class="fa-solid fa-compass text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Apna Travel</h1>
+          <p class="text-xs tracking-widest text-gray-500">EXPERIENTIAL LUXURY</p>
+        </div>
+      </div>
+
+      <nav class="hidden md:flex items-center gap-8 text-gray-700">
+        <a href="#destinations-sec" class="hover:text-teal-600 transition">Destinations</a>
+        <a href="#toolkit-sec" class="hover:text-teal-600 transition">Traveler's Toolkit</a>
+        <a href="#safety-map" class="hover:text-teal-600 transition">Safety Map</a>
+        <a href="#experiences-sec" class="hover:text-teal-600 transition">Experiences</a>
+        <a href="#footer-contact" class="hover:text-teal-600 transition">Contact</a>
+      </nav>
+
+      <button onclick="document.getElementById('destinations-sec').scrollIntoView({behavior: 'smooth'})" class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-full font-medium flex items-center gap-2 transition">
+        Start Your Journey
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+  </header>
+
+ 
+  <section class="hero-bg min-h-screen flex items-center relative">
+    <div class="absolute inset-0 bg-black/40"></div>
+    <div class="max-w-7xl mx-auto px-6 relative z-10 text-white pt-20">
+      <div class="max-w-2xl">
+        <p class="flex items-center gap-2 text-teal-300 mb-4">
+          <i class="fa-solid fa-sparkles"></i> 
+          TAILORED LUXURY JOURNEYS
+        </p>
+        <h1 class="text-5xl md:text-6xl font-bold leading-tight mb-6">
+          Discover the World,<br>Your Way
+        </h1>
+        <p class="text-lg text-gray-200 mb-10">
+          Bespoke escapes shaped around how you want to feel.
+        </p>
+        
+        <div class="search-box-glass rounded-3xl p-8 max-w-xl shadow-2xl">
+          <div class="grid md:grid-cols-3 gap-4">
+            <div>
+              <label class="text-xs font-bold uppercase tracking-widest block mb-1 text-teal-300">Where to?</label>
+              <input type="text" id="searchInput" placeholder="Bali, Iceland..." 
+                     class="w-full bg-white/20 border border-white/30 rounded-xl px-4 py-3 text-white placeholder-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-400 transition">
+            </div>
+            <div>
+              <label class="text-xs font-bold uppercase tracking-widest block mb-1 text-teal-300">When?</label>
+              <input type="text" id="dateInput" placeholder="May 2026" 
+                     class="w-full bg-white/20 border border-white/30 rounded-xl px-4 py-3 text-white placeholder-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-400 transition">
+            </div>
+            <div class="flex items-end">
+              <button id="searchBtn" class="w-full bg-teal-600 text-white font-bold py-3 rounded-xl hover:bg-teal-500 transition-all transform active:scale-95 shadow-lg">
+                <i class="fa-solid fa-search mr-2"></i>Search Trips
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+  <div id="destinationPage" class="fixed inset-0 z-50 hidden bg-gray-50 overflow-y-auto">
+    <div class="absolute top-4 left-4 z-20">
+      <button id="backBtn" class="bg-white shadow-lg rounded-full p-3 hover:bg-gray-50 transition">
+        <i class="fa-solid fa-arrow-left text-gray-700 text-xl"></i>
+      </button>
+    </div>
+
+    <div class="fixed top-24 right-6 z-30 bg-teal-600 text-white p-6 rounded-3xl shadow-2xl max-w-sm w-full md:w-80 hidden md:block">
+      <h3 class="text-xl font-bold mb-4">Ready to Book?</h3>
+      <div id="bookingPrice" class="text-3xl font-bold mb-6"></div>
+      <button onclick="openBookingModal()" class="w-full bg-white text-teal-700 font-bold py-4 rounded-2xl shadow-lg hover:bg-gray-50 transition transform hover:scale-105">
+        Book This Journey
+      </button>
+    </div>
+
+    <section id="destHero" class="destination-hero relative">
+      <div class="absolute inset-0 bg-black/40"></div>
+      <div class="relative z-10 max-w-7xl mx-auto px-6 pt-24 pb-20 text-white text-center">
+        <div id="destRatingStars" class="text-yellow-400 mb-4 text-xl"></div>
+        <h1 id="destTitle" class="text-5xl font-bold mb-4 uppercase tracking-wider"></h1>
+        <p id="destSubtitle" class="text-xl max-w-2xl mx-auto"></p>
+      </div>
+    </section>
+
+    
+    <section class="max-w-5xl mx-auto px-6 py-12">
+      <!-- Detailed Description -->
+      <div class="bg-white p-8 rounded-3xl shadow-sm mb-12">
+        <h2 class="text-3xl font-bold mb-6 text-gray-900">About This Destination</h2>
+        <div id="destDescription" class="text-lg text-gray-700 leading-relaxed mb-8"></div>
+        
+       
+        <h3 class="text-2xl font-bold mb-6 text-gray-900">Visual Journey</h3>
+        <div id="destGallery" class="dest-gallery"></div>
+      </div>
+
+     
+      <div class="bg-white p-8 rounded-3xl shadow-sm mb-12">
+        <h2 class="text-2xl font-bold mb-4">Trip Highlights</h2>
+        <div id="itinerary" class="grid md:grid-cols-2 gap-4"></div>
+      </div>
+    </section>
+  </div>
+
+  
+  <div id="bookingModal" class="fixed inset-0 z-[60] hidden bg-black/60 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl">
+      <div class="bg-teal-600 p-6 text-white text-center relative">
+        <button onclick="closeBookingModal()" class="absolute top-4 right-6 text-2xl hover:scale-110 transition">&times;</button>
+        <h3 class="text-2xl font-bold">Complete Your Booking</h3>
+        <p class="text-teal-100 text-sm mt-1" id="modalDestName"></p>
+      </div>
+      <form id="bookingForm" class="p-8 space-y-4" onsubmit="submitBooking(event)">
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+          <input type="text" id="custName" required placeholder="John Doe" class="w-full p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-teal-500">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Age</label>
+            <input type="number" id="custAge" required min="18" placeholder="25" class="w-full p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-teal-500">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Gender</label>
+            <select id="custGender" class="w-full p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-teal-500">
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Payment Method</label>
+          <select id="custPayment" class="w-full p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-teal-500">
+            <option>Credit Card</option>
+            <option>PayPal</option>
+            <option>Crypto</option>
+          </select>
+        </div>
+        <button type="submit" class="w-full bg-teal-600 text-white font-bold py-4 rounded-xl mt-4 hover:bg-teal-700 transition">Confirm Payment</button>
+      </form>
+    </div>
+  </div>
+
+  
+<section id="toolkit-sec" class="max-w-7xl mx-auto px-6 py-20">
+  <div class="text-center mb-16">
+    <h2 class="text-4xl font-bold text-gray-900 mb-4">Traveler's Toolkit</h2>
+    <p id="selectedDateDisplay" class="text-teal-600 font-medium">Click any tool to activate</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 toolkit-grid">
+    <!-- Calendar Card - ALWAYS VISIBLE -->
+    <div class="toolkit-card active tool-card" onclick="openTool('calendar')">
+      <div class="tool-header">
+        📅 Calendar
+      </div>
+      <div class="p-4 flex-1 flex flex-col">
+        <div id="tool-calendar-content" class="tool-content flex-1"></div>
+      </div>
+    </div>
+
+    
+    <div class="toolkit-card tool-card" onclick="openTool('todo')">
+      <div class="tool-header">
+        ✅ To-Do List
+      </div>
+      <div class="p-4 flex-1 flex flex-col">
+        <div id="tool-todo-content" class="tool-content flex-1"></div>
+      </div>
+    </div>
+
+    
+    <div class="toolkit-card tool-card" onclick="openTool('calculator')">
+      <div class="tool-header">
+        🧮 Calculator
+      </div>
+      <div class="p-4 flex-1 flex flex-col">
+        <div id="tool-calculator-content" class="tool-content flex-1"></div>
+      </div>
+    </div>
+
+    
+    <div class="toolkit-card tool-card" onclick="openTool('currency')">
+      <div class="tool-header">
+        💱 Currency
+      </div>
+      <div class="p-4 flex-1 flex flex-col">
+        <div id="tool-currency-content" class="tool-content flex-1"></div>
+      </div>
+    </div>
+
+    
+    <div class="toolkit-card tool-card" onclick="openTool('expense')">
+      <div class="tool-header">
+        💰 Expenses
+      </div>
+      <div class="p-4 flex-1 flex flex-col">
+        <div id="tool-expense-content" class="tool-content flex-1"></div>
+      </div>
+    </div>
+
+    
+    <div class="toolkit-card tool-card" onclick="openTool('safety')">
+      <div class="tool-header">
+        🛡️ Safety
+      </div>
+      <div class="p-4 flex-1 flex flex-col">
+        <div id="safety-toolkit" class="safety-card tool-content flex-1"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+  
+  <section id="safety-map" class="max-w-7xl mx-auto px-6 py-20">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl font-bold text-gray-900 mb-4">Global Safety Map</h2>
+      <p class="text-xl text-gray-600 max-w-2xl mx-auto">Discover the safest destinations for your next luxury adventure</p>
+    </div>
+    
+    <div class="bg-white rounded-3xl p-8 shadow-2xl">
+      <div class="flex flex-col lg:flex-row gap-8 mb-8">
+        <div class="lg:w-1/3">
+          <div class="bg-gradient-to-br from-teal-600 to-teal-700 text-white p-6 rounded-2xl mb-6">
+            <h3 class="text-2xl font-bold mb-2">Your Current Location</h3>
+            <div id="current-location" class="text-3xl font-bold mb-2">--</div>
+            <div id="current-safety-score" class="safety-score">--</div>
+            <p id="safety-advice" class="mt-4 text-teal-100">Click detect to see safety index</p>
+          </div>
+          
+          <div class="bg-white p-6 rounded-2xl shadow-sm">
+            <button onclick="detectLocation()" id="detect-btn-map" class="w-full bg-teal-600 hover:bg-teal-700 text-white py-4 px-6 rounded-xl font-bold flex items-center justify-center gap-2 transition mb-4">
+              <i class="fa-solid fa-location-dot"></i> Detect My Location
+            </button>
+            <h4 class="text-xl font-bold text-gray-900 mb-4">Emergency</h4>
+            <button onclick="emergencySOS()" id="sos-btn-map" class="emergency-btn w-full">
+              <i class="fa-solid fa-phone mr-2"></i>
+              Call Emergency
+              <span id="emergency-number-map" class="ml-2">--</span>
+            </button>
+          </div>
+          
+          <div class="space-y-4 mt-6">
+            <h4 class="text-xl font-bold text-gray-900">Safest Places Nearby</h4>
+            <div id="safe-places-list" class="space-y-3 max-h-64 overflow-y-auto">
+              <!-- Safe places will be populated here -->
+            </div>
+          </div>
+        </div>
+        
+        <div class="lg:w-2/3">
+          <div id="safetyMap" class="map-container"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+  <section id="destinations-sec" class="max-w-7xl mx-auto px-6 py-20">
+    <h2 class="text-4xl font-bold text-center mb-12">Featured Destinations</h2>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="destinations"></div>
+  </section>
+
+  
+  <section id="experiences-sec" class="bg-gray-900 text-white py-20">
+    <div class="max-w-7xl mx-auto px-6 text-center">
+      <h2 class="text-4xl font-bold mb-12">Signature Experiences</h2>
+      <div class="grid md:grid-cols-3 gap-8" id="experiences"></div>
+    </div>
+  </section>
+
+ 
+  <footer id="footer-contact" class="bg-gray-900 text-gray-400 py-16">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid md:grid-cols-4 gap-12">
+        <div class="col-span-1 md:col-span-1">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center text-white">
+              <i class="fa-solid fa-compass text-xl"></i>
+            </div>
+            <h3 class="text-white text-2xl font-bold">Apna Travel</h3>
+          </div>
+          <p class="text-sm">Crafting extraordinary, bespoke travel experiences since 2018.</p>
+          <div class="flex gap-4 mt-6">
+            <a href="#" class="hover:text-teal-400 transition text-xl"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#" class="hover:text-teal-400 transition text-xl"><i class="fa-brands fa-x-twitter"></i></a>
+          </div>
+        </div>
+        <div>
+          <h4 class="text-white font-bold uppercase tracking-widest text-sm mb-6">Explore</h4>
+          <ul class="space-y-4 text-sm">
+            <li><a href="#destinations-sec" class="hover:text-white transition">Destinations</a></li>
+            <li><a href="#toolkit-sec" class="hover:text-white transition">Traveler's Toolkit</a></li>
+            <li><a href="#safety-map" class="hover:text-white transition">Safety Map</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white font-bold uppercase tracking-widest text-sm mb-6">Contact Us</h4>
+          <ul class="space-y-4 text-sm">
+            <li><i class="fa-solid fa-phone text-teal-500 mr-2"></i> +91-7214542894</li>
+            <li><i class="fa-solid fa-envelope text-teal-500 mr-2"></i> hello@apnatravel.com</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white font-bold uppercase tracking-widest text-sm mb-6">Stay Inspired</h4>
+          <input type="email" placeholder="Your email" class="bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm w-full text-white mb-2">
+          <button class="bg-teal-600 text-white w-full py-3 rounded-xl">Subscribe</button>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+ 
+<script src="fee.js">
+  
+</script>
+</body>
+</html>
